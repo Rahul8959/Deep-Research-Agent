@@ -1,133 +1,149 @@
-# Deep Research Agent (DeepAgents + Tavily + arXiv)
+# Deep Research Agent
 
-A simple research assistant built using **DeepAgents** that can:
-- search the web for reliable background information (Tavily `topic="general"`)
-- fetch relevant research papers (arXiv via `ArxivRetriever`)
-- optionally fetch **recent updates** using a dedicated **news subagent** (Tavily `topic="news"`)
+A multi-agent research assistant that searches the web, arXiv, and recent news, then synthesizes a clear, cited answer.
 
-You can run it:
-1) from the **console (CLI)** using `deep_research_agent.py`
-2) as a **Streamlit web app** using `streamlit_app.py`
+**Live demo:** https://deep-dive-research.streamlit.app/
+
+Built with [DeepAgents](https://github.com/langchain-ai/deepagents) on top of LangChain/LangGraph, powered by [Mistral AI](https://mistral.ai/) for reasoning and orchestration, [Tavily](https://tavily.com/) for web search, and [arXiv](https://arxiv.org/) for academic papers.
+
+---
+
+## Architecture
+
+A lead **orchestrator** agent analyzes each user query and delegates to three specialized sub-agents:
+
+| Sub-agent | Role | Tool |
+|---|---|---|
+| `web-generalist` | Definitions, documentation, tutorials, general background | Tavily (topic=general) |
+| `arxiv-expert` | Academic papers, SOTA methods, scientific evidence | arXiv |
+| `news-researcher` | Recent updates, timelines, releases, announcements | Tavily (topic=news) |
+
+The orchestrator then merges findings into a single structured report with inline source URLs / arXiv IDs.
 
 ---
 
 ## Features
 
-- **General research (Tavily - General)**  
-  Finds definitions, documentation, explainers, comparisons, and background.
-
-- **Academic grounding (arXiv)**  
-  Adds relevant research papers for technical topics, with short summaries and arXiv IDs.
-
-- **Recent updates timeline (Tavily - News subagent)**  
-  For queries like “latest”, “recent”, “timeline”, “this week”, the main agent can delegate to a subagent that returns a compact timeline + sources.
-
-- **Timing logs**  
-  Prints tool timings in the console (useful for debugging and demos).
+- **Multi-source research** — web + academic papers + recent news, from a single query
+- **Cited answers** — source URLs and arXiv IDs attached to every claim
+- **Streaming UI** — answers render live as the agent works
+- **Light / dark mode** — toggle in the sidebar
+- **CLI mode** — run from the terminal without the UI
 
 ---
 
-## Project Files
+## Project structure
 
-- **`deep_research_agent.py`**  
-  Creates the deep research agent and exposes:
-  - `DRA_agent` (agent instance)
-  - `run_query(query: str)` helper
-  - `extract_text_from_message(msg)` helper
-
-- **`streamlit_app.py`**  
-  A Streamlit UI that imports and runs the same agent.
+```
+Deep-Research-Agent/
+├── main.py                  # CLI entry point
+├── streamlit_app.py         # Streamlit UI entry point
+├── requirements.txt
+├── src/
+│   ├── agent.py             # Builds the orchestrator + sub-agents
+│   ├── prompts.py           # System prompts for each agent
+│   ├── utils.py             # Timing decorator, text helpers
+│   └── tools/
+│       ├── web_tools.py     # Tavily general + news search
+│       └── paper_tools.py   # arXiv retrieval
+├── .streamlit/
+│   └── config.toml          # Streamlit theme config
+├── .env.example             # Template for API keys
+└── README.md
+```
 
 ---
 
 ## Setup
 
-### 1) Create a virtual environment (recommended)
+### 1. Clone and create a virtual environment
 
-**Windows (PowerShell)**
+```bash
+git clone https://github.com/Rahul8959/Deep-Research-Agent.git
+cd Deep-Research-Agent
+```
+
+**Windows (PowerShell):**
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-````
+```
 
-**Mac/Linux**
-
+**macOS / Linux:**
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 ```
 
-### 2) Install dependencies
-Make sure your virtual environment is activated, then run:
+### 2. Install dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3) Add API keys
+### 3. Add your API keys
 
-Create a file named **`.env`** in the project root:
+Copy the template and fill in your real keys:
+
+```bash
+cp .env.example .env
+```
+
+Then edit `.env`:
 
 ```env
 MISTRAL_API_KEY=your_mistral_key_here
 TAVILY_API_KEY=your_tavily_key_here
-
-# Optional (LangSmith tracing)
-LANGSMITH_API_KEY=
-LANGSMITH_PROJECT=
-LANGSMITH_ENDPOINT=
-LANGSMITH_TRACING=
 ```
+
+- Mistral API key — https://console.mistral.ai/api-keys (free tier works)
+- Tavily API key — https://tavily.com/ (free tier: 1,000 searches/month)
 
 ---
 
-## Run from Console (CLI)
+## Usage
 
-```bash
-python deep_research_agent.py
-```
-
-It will prompt:
-
-```text
-Enter your research query:
-```
-
-Example query:
-
-```text
-Explain RAG vs fine-tuning. Include 3–5 web sources with research papers.
-```
-
----
-
-## Run as Streamlit App
+### Run the Streamlit UI (recommended)
 
 ```bash
 streamlit run streamlit_app.py
 ```
 
-Then open the local URL shown in the terminal (usually `http://localhost:8501`).
+Opens at `http://localhost:8501`.
 
-The UI includes example queries you can select/copy and a textbox to run your own.
+### Run the CLI
+
+```bash
+python main.py
+```
+
+Then type queries at the prompt. `exit` or `quit` to close.
 
 ---
 
-## Example Queries
+## Example queries
 
-* What is RAG in simple words?
-* Explain fine-tuning in simple words.
-* What is an embedding? Give a small example.
-* How does semantic search work?
-* What are the latest updates about AI agents this week? Give a short timeline with sources.
+- *"Compare RAG vs. fine-tuning for enterprise search."*
+- *"What is the state of the art in LLM-based agents?"*
+- *"Summarize recent advances in diffusion models on arXiv."*
+- *"What are the latest updates about AI agents this week? Give a short timeline with sources."*
+
+Time-sensitive queries (containing words like *latest*, *recent*, *timeline*, *this week*) automatically trigger the news sub-agent.
 
 ---
 
-## Notes
+## Model
 
-* The **news subagent** is only used for time-sensitive questions (e.g., “latest”, “recent”, “timeline”, “this week”).
-* arXiv search is mainly used for **technical/research-heavy topics** to add credible paper references.
-* If a source/date cannot be verified from tool outputs, the agent is instructed to mark it as uncertain.
+Uses `mistral-small-2603` by default — chosen for its generous free-tier limits (400 RPM, 1.5M TPM) which comfortably handle the multi-agent fan-out. The model ID is set in `src/agent.py` and can be swapped to any other Mistral model.
 
-```
-::contentReference[oaicite:0]{index=0}
-```
+---
+
+## Deployment
+
+The live demo at [deep-dive-research.streamlit.app](https://deep-dive-research.streamlit.app/) is deployed on [Streamlit Community Cloud](https://share.streamlit.io). API keys are managed through Streamlit Cloud's secrets manager, not committed to the repo.
+
+---
+
+## License
+
+MIT
