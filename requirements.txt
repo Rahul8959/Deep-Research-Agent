@@ -1,9 +1,8 @@
-deepagents 
+deepagents
 tavily-python
-dotenv
-langchain_mistralai
-langchain_community
+python-dotenv
+langchain-mistralai
+langchain-community
 arxiv
 pymupdf
-fitz
-streamlit 
+streamlit
