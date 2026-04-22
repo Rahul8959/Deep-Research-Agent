@@ -1,0 +1,9 @@
+deepagents 
+tavily-python
+dotenv
+langchain_mistralai
+langchain_community
+arxiv
+pymupdf
+fitz
+streamlit 
