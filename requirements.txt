@@ -2,7 +2,6 @@ deepagents
 tavily-python
 python-dotenv
 langchain-mistralai
-langchain-community
-arxiv
-pymupdf
+arxiv>=2.1
 streamlit
+
