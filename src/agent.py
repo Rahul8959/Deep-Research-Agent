@@ -17,7 +17,7 @@ from src.prompts import (
 # 1. Initialize the LLM
 # Using mistral-large-latest for high-reasoning orchestration
 llm = ChatMistralAI(
-    model="mistral-small-2603",
+    model="ministral-14b-latest",
     mistral_api_key=os.environ.get("MISTRAL_API_KEY")
 )
 
