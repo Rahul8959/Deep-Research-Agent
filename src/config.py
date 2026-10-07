@@ -14,5 +14,5 @@ os.environ.get("LANGSMITH_TRACING")
 # Magistral = Mistral's open-weight reasoning model line; the `-small-latest`
 # alias is available on the free La Plateforme tier (rate-limited).
 llm = ChatMistralAI(
-    model="magistral-small-latest",
+    model="ministral-14b-latest",
 )
